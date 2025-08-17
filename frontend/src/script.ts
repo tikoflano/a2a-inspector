@@ -142,12 +142,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const chatInput = document.getElementById('chat-input') as HTMLInputElement;
   const sendBtn = document.getElementById('send-btn') as HTMLButtonElement;
   const chatMessages = document.getElementById('chat-messages') as HTMLElement;
-  const useTaskIdCheckbox = document.getElementById(
-    'use-taskid-checkbox',
-  ) as HTMLInputElement;
-  const useTaskIdLabel = document.getElementById(
-    'use-taskid-label',
-  ) as HTMLLabelElement;
+  const useTaskIdBtn = document.getElementById(
+    'use-taskid-btn',
+  ) as HTMLButtonElement;
   const debugConsole = document.getElementById('debug-console') as HTMLElement;
   const debugHandle = document.getElementById('debug-handle') as HTMLElement;
   const debugContent = document.getElementById('debug-content') as HTMLElement;
@@ -713,11 +710,10 @@ document.addEventListener('DOMContentLoaded', () => {
     chatInput.disabled = true;
     sendBtn.disabled = true;
 
-    // Hide and disable the use-taskid checkbox and clear chat messages
-    if (useTaskIdLabel && useTaskIdCheckbox) {
-      useTaskIdLabel.classList.add('hidden');
-      useTaskIdCheckbox.disabled = true;
-      useTaskIdCheckbox.checked = false;
+    // Hide and disable the use previous taskid button and clear chat messages
+    if (useTaskIdBtn) {
+      useTaskIdBtn.classList.add('hidden');
+      useTaskIdBtn.disabled = true;
     }
     if (chatMessages) {
       chatMessages.innerHTML =
@@ -874,6 +870,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const sessionDetails = document.getElementById(
       'session-details',
     ) as HTMLElement;
+    const sessionTaskId = document.getElementById(
+      'session-task-id',
+    ) as HTMLElement;
     const newSessionBtn = document.getElementById(
       'new-session-btn',
     ) as HTMLButtonElement;
@@ -882,6 +881,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (sessionDetails) {
         sessionDetails.textContent = 'No active session';
       }
+      if (sessionTaskId) {
+        sessionTaskId.textContent = 'No active task';
+      }
       if (newSessionBtn) {
         newSessionBtn.disabled = true;
       }
@@ -889,12 +891,18 @@ document.addEventListener('DOMContentLoaded', () => {
       if (sessionDetails) {
         sessionDetails.textContent = contextId;
       }
+      if (sessionTaskId) {
+        sessionTaskId.textContent = previousTaskId ?? 'No active task';
+      }
       if (newSessionBtn) {
         newSessionBtn.disabled = false;
       }
     } else {
       if (sessionDetails) {
         sessionDetails.textContent = 'No active session';
+      }
+      if (sessionTaskId) {
+        sessionTaskId.textContent = 'No active task';
       }
       if (newSessionBtn) {
         newSessionBtn.disabled = true;
@@ -909,6 +917,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const resetSession = () => {
     contextId = null;
+    previousTaskId = null;
     chatMessages.innerHTML =
       '<p class="placeholder-text">Send a message to start a new session.</p>';
     updateSessionUI();
@@ -935,7 +944,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let previousTaskId: string | null = null;
 
-  const sendMessage = () => {
+  // Send a chat message. If usePrevTaskId is true and a previous task exists, reuse it.
+  const sendMessage = (usePrevTaskId = false) => {
     const messageText = chatInput.value;
     if ((messageText.trim() || attachments.length > 0) && !chatInput.disabled) {
       const sanitizedMessage = DOMPurify.sanitize(messageText);
@@ -959,17 +969,17 @@ document.addEventListener('DOMContentLoaded', () => {
         mimeType: a.mimeType,
       }));
 
-      let payload = {
+      const payload = {
         message: sanitizedMessage,
         id: messageId,
         contextId,
         metadata,
         attachments: attachmentsToSend,
+        // Reuse previous task id only when explicitly requested
+        taskId: usePrevTaskId && previousTaskId ? previousTaskId : null,
       };
-            
-      if (useTaskIdCheckbox && useTaskIdCheckbox.checked && previousTaskId) {
-        payload.taskId = previousTaskId;
-      }
+
+      // Use the sanitized message when sending it to the server
       socket.emit('send_message', payload);
 
       chatInput.value = '';
@@ -978,10 +988,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  sendBtn.addEventListener('click', sendMessage);
+  sendBtn.addEventListener('click', () => sendMessage());
   chatInput.addEventListener('keypress', (e: KeyboardEvent) => {
     if (e.key === 'Enter') sendMessage();
   });
+  if (useTaskIdBtn) {
+    useTaskIdBtn.addEventListener('click', () => sendMessage(true));
+  }
 
   const renderMultimediaContent = (uri: string, mimeType: string): string => {
     const sanitizedUri = DOMPurify.sanitize(uri);
@@ -1035,15 +1048,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayMessageId = `display-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     messageJsonStore[displayMessageId] = event;
 
-    // Show and enable the use-taskid checkbox if a response is received
-    if (useTaskIdLabel && useTaskIdCheckbox) {
-      useTaskIdLabel.classList.remove('hidden');
-      useTaskIdCheckbox.disabled = false;
+    // Show/enable the use previous taskid button if a response is received
+    if (useTaskIdBtn) {
+      useTaskIdBtn.classList.remove('hidden');
+      useTaskIdBtn.disabled = false;
     }
 
     // Store previous task_id if present
     if (event.kind === 'task') {
       previousTaskId = event.id;
+      updateSessionUI();
     }
 
     const validationErrors = event.validation_errors || [];

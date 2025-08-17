@@ -102,6 +102,10 @@
                             <strong>Context ID:</strong>
                             <code id="session-details" class="session-context-id">No active session</code>
                         </div>
+                        <div class="session-info-row">
+                            <strong>Task ID:</strong>
+                            <code id="session-task-id" class="session-context-id">No active task</code>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -128,15 +132,8 @@
                         <span class="attach-icon">+</span>
                     </button>
                     <button id="send-btn" disabled>Send</button>
+                    <button id="use-taskid-btn" class="use-taskid-btn hidden" disabled>Send with previous <code>taskId</code></button>
                 </div>
-            <div class="chat-input-container">
-                <input type="text" id="chat-input" placeholder="Type a message..." disabled>
-                <button id="send-btn" disabled>Send</button>
-                <label id="use-taskid-label" for="use-taskid-checkbox" class="use-taskid-label hidden">
-                  <input type="checkbox" id="use-taskid-checkbox" disabled>
-                  use previous <code>taskId</code>
-                </label>
-            </div>
         </div>
     </div>
 

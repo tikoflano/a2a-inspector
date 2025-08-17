@@ -1317,4 +1317,28 @@ body.dark-mode .file-link {
 
 body.dark-mode .file-link:hover {
     background-color: var(--bg-secondary);
+    align-items: center;
+    display: flex;
+    gap: 4px;
+}
+
+.use-taskid-btn {
+    margin-left: 10px;
+    font-size: 0.95em;
+    padding: 10px 15px;
+    border: none;
+    background-color: #1877f2;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.use-taskid-btn:disabled {
+    background-color: #e4e6eb;
+    color: #888;
+    cursor: not-allowed;
+}
+
+.hidden {
+    display: none;
 }
