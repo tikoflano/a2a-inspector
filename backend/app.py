@@ -38,6 +38,16 @@ STANDARD_HEADERS = {
     'content-length',
     'connection',
     'accept-encoding',
+    'accept-language',
+    'origin',
+    'referer',
+    'cookie',
+    'sec-ch-ua',
+    'sec-ch-ua-mobile',
+    'sec-ch-ua-platform',
+    'sec-fetch-site',
+    'sec-fetch-mode',
+    'sec-fetch-dest',
 }
 
 # ==============================================================================
