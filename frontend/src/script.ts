@@ -1113,6 +1113,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Hide loading indicator on first response
     hideLoadingIndicator();
 
+    // Hide polling bar when a terminal response arrives
+    if (event.status?.state && ['completed', 'canceled', 'failed', 'rejected'].includes(event.status.state)) {
+      pollingBar.style.display = 'none';
+    }
+
     const displayMessageId = `display-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     messageJsonStore[displayMessageId] = event;
 
