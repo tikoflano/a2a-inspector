@@ -1253,31 +1253,24 @@ document.addEventListener('DOMContentLoaded', () => {
     debugContent.scrollTop = debugContent.scrollHeight;
   });
 
+  const pollingBar = document.getElementById('polling-bar') as HTMLElement;
+
   socket.on('polling_status', (data: {status: string; taskId: string; attempt?: number; state?: string; id: string}) => {
-    const existingStatus = document.getElementById('polling-indicator');
-    if (data.status === 'started') {
-      const indicator = document.createElement('div');
-      indicator.id = 'polling-indicator';
-      indicator.className = 'message system-message';
-      indicator.innerHTML = `<em>⏳ Polling task ${data.taskId}...</em> <button id="stop-polling-btn" style="margin-left:8px;cursor:pointer;">⏹ Stop</button>`;
-      chatMessages.appendChild(indicator);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+    if (data.status === 'started' || data.status === 'polling') {
+      pollingBar.style.display = 'block';
+      const attempt = data.attempt ? ` (attempt ${data.attempt})` : '';
+      pollingBar.innerHTML = `⏳ Polling task <code>${data.taskId}</code>${attempt} <button id="stop-polling-btn" style="margin-left:8px;cursor:pointer;background:#444;border:1px solid #666;color:#fff;border-radius:4px;padding:2px 8px;">⏹ Stop</button>`;
       document.getElementById('stop-polling-btn')?.addEventListener('click', () => {
         socket.emit('stop_polling', {taskId: data.taskId});
-        if (existingStatus || document.getElementById('polling-indicator')) {
-          (existingStatus || document.getElementById('polling-indicator'))!.innerHTML = `<em>⏹ Polling stopped for task ${data.taskId}</em>`;
-        }
+        pollingBar.innerHTML = `⏹ Polling stopped`;
+        setTimeout(() => { pollingBar.style.display = 'none'; }, 3000);
       });
-    } else if (data.status === 'polling' && existingStatus) {
-      existingStatus.innerHTML = `<em>⏳ Polling task ${data.taskId}... (attempt ${data.attempt})</em> <button id="stop-polling-btn" style="margin-left:8px;cursor:pointer;">⏹ Stop</button>`;
-      document.getElementById('stop-polling-btn')?.addEventListener('click', () => {
-        socket.emit('stop_polling', {taskId: data.taskId});
-        existingStatus.innerHTML = `<em>⏹ Polling stopped for task ${data.taskId}</em>`;
-      });
-    } else if (data.status === 'complete' && existingStatus) {
-      existingStatus.innerHTML = `<em>✅ Task ${data.taskId} reached state: ${data.state}</em>`;
-    } else if (data.status === 'timeout' && existingStatus) {
-      existingStatus.innerHTML = `<em>⚠️ Polling timed out for task ${data.taskId}</em>`;
+    } else if (data.status === 'complete') {
+      pollingBar.innerHTML = `✅ Task reached state: ${data.state}`;
+      setTimeout(() => { pollingBar.style.display = 'none'; }, 5000);
+    } else if (data.status === 'timeout') {
+      pollingBar.innerHTML = `⚠️ Polling timed out`;
+      setTimeout(() => { pollingBar.style.display = 'none'; }, 5000);
     }
   });
 
