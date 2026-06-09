@@ -209,6 +209,10 @@ async def get_agent_card(request: Request) -> JSONResponse:
             card_resolver = get_card_resolver(client, agent_url)
             card = await card_resolver.get_agent_card()
 
+        supports_streaming = (
+            card.capabilities.streaming if card.capabilities else False
+        )
+
         card_data = card.model_dump(exclude_none=True)
         validation_errors = validators.validate_agent_card(card_data)
         response_data = {
@@ -280,6 +284,10 @@ async def handle_initialize_client(sid: str, data: dict[str, Any]) -> None:
         card_resolver = get_card_resolver(httpx_client, agent_card_url)
         card = await card_resolver.get_agent_card()
 
+        supports_streaming = (
+            card.capabilities.streaming if card.capabilities else False
+        )
+
         a2a_config = ClientConfig(
             supported_transports=[
                 TransportProtocol.jsonrpc,
@@ -289,6 +297,7 @@ async def handle_initialize_client(sid: str, data: dict[str, Any]) -> None:
             ],
             use_client_preference=True,
             httpx_client=httpx_client,
+            polling=not supports_streaming,
         )
         factory = ClientFactory(a2a_config)
         a2a_client = factory.create(card)
