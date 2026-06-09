@@ -1096,43 +1096,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
     switch (event.kind) {
       case 'task': {
-        // For HTTP+JSON tasks with artifacts, display content with kind chip (like JSON-RPC messages)
         const hasArtifacts = event.artifacts && event.artifacts.length > 0;
 
         if (hasArtifacts && event.artifacts) {
-          // Collect all artifact content
           const allContent: string[] = [];
-
           event.artifacts.forEach(artifact => {
             artifact.parts?.forEach(p => {
               const content = processPart(p);
               if (content) allContent.push(content);
             });
           });
-
-          // Display with kind chip for consistency with JSON-RPC messages
           if (allContent.length > 0) {
             const combinedContent = allContent.join('');
             const kindChip = `<span class="kind-chip kind-chip-${event.kind}">${event.kind}</span>`;
             const messageHtml = `${kindChip} ${combinedContent}`;
-            appendMessage(
-              'agent',
-              messageHtml,
-              displayMessageId,
-              true,
-              validationErrors,
-            );
+            appendMessage('agent', messageHtml, displayMessageId, true, validationErrors);
+          }
+        } else if (event.history) {
+          // Show the last agent message from history
+          const agentMessages = event.history.filter((m: any) => m.role === 'agent');
+          const lastAgent = agentMessages[agentMessages.length - 1];
+          if (lastAgent?.parts?.length) {
+            const allContent: string[] = [];
+            lastAgent.parts.forEach((p: any) => {
+              const content = processPart(p);
+              if (content) allContent.push(content);
+            });
+            if (allContent.length > 0) {
+              const state = event.status?.state || 'unknown';
+              const kindChip = `<span class="kind-chip kind-chip-task">${state}</span>`;
+              const messageHtml = `${kindChip} ${allContent.join('')}`;
+              appendMessage('agent', messageHtml, displayMessageId, true, validationErrors);
+            } else {
+              const statusHtml = `<span class="kind-chip kind-chip-task">${event.kind}</span> Task status: ${DOMPurify.sanitize(event.status?.state || 'unknown')}`;
+              appendMessage('agent progress', statusHtml, displayMessageId, true, validationErrors);
+            }
+          } else {
+            const statusHtml = `<span class="kind-chip kind-chip-task">${event.kind}</span> Task status: ${DOMPurify.sanitize(event.status?.state || 'unknown')}`;
+            appendMessage('agent progress', statusHtml, displayMessageId, true, validationErrors);
           }
         } else if (event.status) {
-          // Only show task status if there are no artifacts
-          const statusHtml = `<span class="kind-chip kind-chip-task">${event.kind}</span> Task created with status: ${DOMPurify.sanitize(event.status.state)}`;
-          appendMessage(
-            'agent progress',
-            statusHtml,
-            displayMessageId,
-            true,
-            validationErrors,
-          );
+          // Show status message parts if available, otherwise just the state
+          const statusParts = event.status.message?.parts;
+          if (statusParts?.length) {
+            const allContent: string[] = [];
+            statusParts.forEach((p: any) => {
+              const content = processPart(p);
+              if (content) allContent.push(content);
+            });
+            const state = event.status.state || 'unknown';
+            const kindChip = `<span class="kind-chip kind-chip-task">${state}</span>`;
+            const messageHtml = `${kindChip} ${allContent.join('') || event.status.state}`;
+            appendMessage('agent progress', messageHtml, displayMessageId, true, validationErrors);
+          } else {
+            const statusHtml = `<span class="kind-chip kind-chip-task">${event.kind}</span> Task status: ${DOMPurify.sanitize(event.status.state)}`;
+            appendMessage('agent progress', statusHtml, displayMessageId, true, validationErrors);
+          }
         }
         break;
       }
@@ -1240,11 +1259,21 @@ document.addEventListener('DOMContentLoaded', () => {
       const indicator = document.createElement('div');
       indicator.id = 'polling-indicator';
       indicator.className = 'message system-message';
-      indicator.innerHTML = `<em>⏳ Polling task ${data.taskId}...</em>`;
+      indicator.innerHTML = `<em>⏳ Polling task ${data.taskId}...</em> <button id="stop-polling-btn" style="margin-left:8px;cursor:pointer;">⏹ Stop</button>`;
       chatMessages.appendChild(indicator);
       chatMessages.scrollTop = chatMessages.scrollHeight;
+      document.getElementById('stop-polling-btn')?.addEventListener('click', () => {
+        socket.emit('stop_polling', {taskId: data.taskId});
+        if (existingStatus || document.getElementById('polling-indicator')) {
+          (existingStatus || document.getElementById('polling-indicator'))!.innerHTML = `<em>⏹ Polling stopped for task ${data.taskId}</em>`;
+        }
+      });
     } else if (data.status === 'polling' && existingStatus) {
-      existingStatus.innerHTML = `<em>⏳ Polling task ${data.taskId}... (attempt ${data.attempt})</em>`;
+      existingStatus.innerHTML = `<em>⏳ Polling task ${data.taskId}... (attempt ${data.attempt})</em> <button id="stop-polling-btn" style="margin-left:8px;cursor:pointer;">⏹ Stop</button>`;
+      document.getElementById('stop-polling-btn')?.addEventListener('click', () => {
+        socket.emit('stop_polling', {taskId: data.taskId});
+        existingStatus.innerHTML = `<em>⏹ Polling stopped for task ${data.taskId}</em>`;
+      });
     } else if (data.status === 'complete' && existingStatus) {
       existingStatus.innerHTML = `<em>✅ Task ${data.taskId} reached state: ${data.state}</em>`;
     } else if (data.status === 'timeout' && existingStatus) {

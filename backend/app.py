@@ -82,6 +82,7 @@ templates = Jinja2Templates(directory='../frontend/public')
 # transient connections, this is acceptable. For a scalable production service,
 # a more robust state management solution (e.g., Redis) would be required.
 clients: dict[str, tuple[httpx.AsyncClient, Client, AgentCard, str]] = {}
+polling_stop: set[str] = set()  # sids that requested polling stop
 
 
 # ==============================================================================
@@ -261,10 +262,17 @@ async def handle_connect(sid: str, environ: dict[str, Any]) -> None:
 async def handle_disconnect(sid: str) -> None:
     """Handle the 'disconnect' socket.io event."""
     logger.info(f'Client disconnected: {sid}')
+    polling_stop.discard(sid)
     if sid in clients:
         httpx_client, _, _, _ = clients.pop(sid)
         await httpx_client.aclose()
         logger.info(f'Cleaned up client for {sid}')
+
+
+@sio.on('stop_polling')
+async def handle_stop_polling(sid: str, data: dict[str, Any]) -> None:
+    """Handle the 'stop_polling' socket.io event."""
+    polling_stop.add(sid)
 
 
 @sio.on('initialize_client')
@@ -412,6 +420,9 @@ async def handle_send_message(sid: str, json_data: dict[str, Any]) -> None:
             )
             for _ in range(60):  # poll up to ~5 minutes
                 await asyncio.sleep(5)
+                if sid in polling_stop:
+                    polling_stop.discard(sid)
+                    break
                 poll_count += 1
                 await sio.emit(
                     'polling_status',
