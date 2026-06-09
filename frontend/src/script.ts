@@ -631,13 +631,22 @@ document.addEventListener('DOMContentLoaded', () => {
     return headers;
   }
 
-  function getMessageMetadata(): Record<string, string> {
-    return getKeyValuePairs(
+  function getMessageMetadata(): Record<string, unknown> {
+    const raw = getKeyValuePairs(
       metadataList,
       '.metadata-item',
       '.metadata-key',
       '.metadata-value',
     );
+    const parsed: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(raw)) {
+      try {
+        parsed[key] = JSON.parse(value);
+      } catch {
+        parsed[key] = value;
+      }
+    }
+    return parsed;
   }
 
   clearConsoleBtn.addEventListener('click', () => {
