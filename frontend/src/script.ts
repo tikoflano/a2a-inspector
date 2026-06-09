@@ -685,6 +685,65 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // Save/Load configuration
+  const saveConfigBtn = document.getElementById('save-config-btn') as HTMLButtonElement;
+  const loadConfigBtn = document.getElementById('load-config-btn') as HTMLButtonElement;
+
+  saveConfigBtn.addEventListener('click', () => {
+    const config: Record<string, unknown> = {
+      agentCardUrl: agentCardUrlInput.value,
+      authType: authTypeSelect.value,
+      apiKeyHeader: (document.getElementById('api-key-header') as HTMLInputElement)?.value || '',
+      metadata: getKeyValuePairs(metadataList, '.metadata-item', '.metadata-key', '.metadata-value'),
+      customHeaders: getKeyValuePairs(headersList, '.header-item', '.header-name', '.header-value'),
+    };
+    localStorage.setItem('a2a-inspector-config', JSON.stringify(config));
+    saveConfigBtn.textContent = '✅ Saved';
+    setTimeout(() => { saveConfigBtn.textContent = '💾 Save'; }, 1500);
+  });
+
+  loadConfigBtn.addEventListener('click', () => {
+    const stored = localStorage.getItem('a2a-inspector-config');
+    if (!stored) { alert('No saved configuration found.'); return; }
+    const config = JSON.parse(stored);
+
+    if (config.agentCardUrl) agentCardUrlInput.value = config.agentCardUrl;
+    if (config.authType) {
+      authTypeSelect.value = config.authType;
+      authTypeSelect.dispatchEvent(new Event('change'));
+    }
+    if (config.apiKeyHeader) {
+      const el = document.getElementById('api-key-header') as HTMLInputElement;
+      if (el) el.value = config.apiKeyHeader;
+    }
+
+    // Restore metadata
+    if (config.metadata) {
+      metadataList.innerHTML = '';
+      for (const [key, value] of Object.entries(config.metadata)) {
+        (document.getElementById('add-metadata-btn') as HTMLButtonElement).click();
+        const items = metadataList.querySelectorAll('.metadata-item');
+        const last = items[items.length - 1];
+        (last.querySelector('.metadata-key') as HTMLInputElement).value = key;
+        (last.querySelector('.metadata-value') as HTMLInputElement).value = value as string;
+      }
+    }
+
+    // Restore custom headers (names only, not values)
+    if (config.customHeaders) {
+      headersList.innerHTML = '';
+      for (const [key] of Object.entries(config.customHeaders)) {
+        (document.getElementById('add-header-btn') as HTMLButtonElement).click();
+        const items = headersList.querySelectorAll('.header-item');
+        const last = items[items.length - 1];
+        (last.querySelector('.header-name') as HTMLInputElement).value = key;
+      }
+    }
+
+    loadConfigBtn.textContent = '✅ Loaded';
+    setTimeout(() => { loadConfigBtn.textContent = '📂 Load'; }, 1500);
+  });
+
   connectBtn.addEventListener('click', async () => {
     let agentCardUrl = agentCardUrlInput.value.trim();
     if (!agentCardUrl) {
