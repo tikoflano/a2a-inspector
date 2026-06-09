@@ -1175,6 +1175,24 @@ document.addEventListener('DOMContentLoaded', () => {
     debugContent.scrollTop = debugContent.scrollHeight;
   });
 
+  socket.on('polling_status', (data: {status: string; taskId: string; attempt?: number; state?: string; id: string}) => {
+    const existingStatus = document.getElementById('polling-indicator');
+    if (data.status === 'started') {
+      const indicator = document.createElement('div');
+      indicator.id = 'polling-indicator';
+      indicator.className = 'message system-message';
+      indicator.innerHTML = `<em>⏳ Polling task ${data.taskId}...</em>`;
+      chatMessages.appendChild(indicator);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    } else if (data.status === 'polling' && existingStatus) {
+      existingStatus.innerHTML = `<em>⏳ Polling task ${data.taskId}... (attempt ${data.attempt})</em>`;
+    } else if (data.status === 'complete' && existingStatus) {
+      existingStatus.innerHTML = `<em>✅ Task ${data.taskId} reached state: ${data.state}</em>`;
+    } else if (data.status === 'timeout' && existingStatus) {
+      existingStatus.innerHTML = `<em>⚠️ Polling timed out for task ${data.taskId}</em>`;
+    }
+  });
+
   function appendMessage(
     sender: string,
     content: string,

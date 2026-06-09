@@ -1,5 +1,7 @@
 import logging
 
+import asyncio
+
 from typing import Any
 from urllib.parse import urlparse, urlunparse
 from uuid import uuid4
@@ -20,6 +22,8 @@ from a2a.types import (
     Role,
     Task,
     TaskArtifactUpdateEvent,
+    TaskQueryParams,
+    TaskState,
     TaskStatusUpdateEvent,
     TextPart,
     TransportProtocol,
@@ -383,8 +387,68 @@ async def handle_send_message(sid: str, json_data: dict[str, Any]) -> None:
 
     try:
         response_stream = a2a_client.send_message(message)
+        last_task = None
         async for stream_result in response_stream:
             await _process_a2a_response(stream_result, sid, message_id)
+            if isinstance(stream_result, tuple) and isinstance(
+                stream_result[0], Task
+            ):
+                last_task = stream_result[0]
+
+        # Poll if task is in a non-terminal state
+        terminal_states = {
+            TaskState.completed,
+            TaskState.canceled,
+            TaskState.failed,
+            TaskState.rejected,
+        }
+        if last_task and last_task.status.state not in terminal_states:
+            task_id = last_task.id
+            poll_count = 0
+            await sio.emit(
+                'polling_status',
+                {'status': 'started', 'taskId': task_id, 'id': message_id},
+                to=sid,
+            )
+            for _ in range(60):  # poll up to ~5 minutes
+                await asyncio.sleep(5)
+                poll_count += 1
+                await sio.emit(
+                    'polling_status',
+                    {
+                        'status': 'polling',
+                        'taskId': task_id,
+                        'attempt': poll_count,
+                        'id': message_id,
+                    },
+                    to=sid,
+                )
+                task = await a2a_client.get_task(
+                    TaskQueryParams(id=task_id, history_length=10)
+                )
+                await _process_a2a_response((task, None), sid, message_id)
+                if task.status.state in terminal_states:
+                    await sio.emit(
+                        'polling_status',
+                        {
+                            'status': 'complete',
+                            'taskId': task_id,
+                            'state': task.status.state.value,
+                            'id': message_id,
+                        },
+                        to=sid,
+                    )
+                    break
+            else:
+                await sio.emit(
+                    'polling_status',
+                    {
+                        'status': 'timeout',
+                        'taskId': task_id,
+                        'id': message_id,
+                    },
+                    to=sid,
+                )
 
     except Exception as e:
         logger.error(f'Failed to send message for sid {sid}', exc_info=True)
