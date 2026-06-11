@@ -675,6 +675,14 @@ document.addEventListener('DOMContentLoaded', () => {
       jsonModal.classList.add('hidden');
     }
   });
+  document.getElementById('modal-copy-btn')?.addEventListener('click', () => {
+    const content = modalJsonContent.textContent || '';
+    navigator.clipboard.writeText(content).then(() => {
+      const btn = document.getElementById('modal-copy-btn')!;
+      btn.textContent = '✅ Copied';
+      setTimeout(() => { btn.textContent = '📋 Copy'; }, 1500);
+    });
+  });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const showJsonInModal = (jsonData: any) => {
     if (jsonData) {
