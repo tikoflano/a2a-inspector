@@ -300,7 +300,7 @@ async def handle_load_session(sid: str, data: dict[str, Any]) -> None:
     _, a2a_client, _, _ = clients[sid]
     try:
         task = await a2a_client.get_task(
-            TaskQueryParams(id=task_id, history_length=100)
+            TaskQueryParams(id=task_id, history_length=50)
         )
         # Emit each history message individually for rendering
         task_data = task.model_dump(exclude_none=True)
