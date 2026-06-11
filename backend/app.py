@@ -82,7 +82,7 @@ templates = Jinja2Templates(directory='../frontend/public')
 clients: dict[str, tuple[httpx.AsyncClient, Client, AgentCard, str]] = {}
 polling_stop: set[str] = set()  # sids that requested polling stop
 polling_generation: dict[str, int] = {}  # tracks active polling generation per sid
-last_refresh_state: dict[str, tuple] = {}  # tracks (messageId, state) per sid for refresh dedup
+last_refresh_state: dict[str, set[tuple]] = {}  # tracks all seen (messageId, state) per sid for dedup
 
 
 # ==============================================================================
@@ -292,9 +292,10 @@ async def handle_refresh_task(sid: str, data: dict[str, Any]) -> None:
             getattr(getattr(task.status, 'message', None), 'message_id', None),
             task.status.state,
         )
-        if last_refresh_state.get(sid) == current:
+        seen = last_refresh_state.setdefault(sid, set())
+        if current in seen:
             return  # no change
-        last_refresh_state[sid] = current
+        seen.add(current)
         await _process_a2a_response((task, None), sid, task_id)
     except Exception as e:
         logger.error(f'Failed to refresh task for sid {sid}', exc_info=True)
@@ -320,10 +321,10 @@ async def handle_load_session(sid: str, data: dict[str, Any]) -> None:
         # Emit the final task state
         await _process_a2a_response((task, None), sid, task_id)
         # Set refresh dedup state so next refresh doesn't duplicate
-        last_refresh_state[sid] = (
+        last_refresh_state.setdefault(sid, set()).add((
             getattr(getattr(task.status, 'message', None), 'message_id', None),
             task.status.state,
-        )
+        ))
     except Exception as e:
         logger.error(f'Failed to load session for sid {sid}', exc_info=True)
         await sio.emit(
@@ -482,10 +483,11 @@ async def handle_send_message(sid: str, json_data: dict[str, Any]) -> None:
             # Cancel any previous polling for this sid
             polling_generation[sid] = polling_generation.get(sid, 0) + 1
             my_generation = polling_generation[sid]
-            last_status_msg_id = getattr(
-                getattr(last_task.status, 'message', None), 'message_id', None
-            )
-            last_state = last_task.status.state
+            seen = last_refresh_state.setdefault(sid, set())
+            seen.add((
+                getattr(getattr(last_task.status, 'message', None), 'message_id', None),
+                last_task.status.state,
+            ))
             await sio.emit(
                 'polling_status',
                 {'status': 'started', 'taskId': task_id, 'id': message_id},
@@ -515,9 +517,9 @@ async def handle_send_message(sid: str, json_data: dict[str, Any]) -> None:
                     getattr(task.status, 'message', None), 'message_id', None
                 )
                 current_state = task.status.state
-                if current_status_msg_id != last_status_msg_id or current_state != last_state:
-                    last_status_msg_id = current_status_msg_id
-                    last_state = current_state
+                current = (current_status_msg_id, current_state)
+                if current not in seen:
+                    seen.add(current)
                     await _process_a2a_response((task, None), sid, message_id)
                 if task.status.state in terminal_states:
                     await sio.emit(
