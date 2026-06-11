@@ -289,6 +289,34 @@ async def handle_refresh_task(sid: str, data: dict[str, Any]) -> None:
         await _process_a2a_response((task, None), sid, task_id)
     except Exception as e:
         logger.error(f'Failed to refresh task for sid {sid}', exc_info=True)
+
+
+@sio.on('load_session')
+async def handle_load_session(sid: str, data: dict[str, Any]) -> None:
+    """Load a session by fetching full history and emitting each message."""
+    task_id = data.get('taskId')
+    if not task_id or sid not in clients:
+        return
+    _, a2a_client, _, _ = clients[sid]
+    try:
+        task = await a2a_client.get_task(
+            TaskQueryParams(id=task_id, history_length=100)
+        )
+        # Emit each history message individually for rendering
+        task_data = task.model_dump(exclude_none=True)
+        history = task_data.get('history', [])
+        for msg in history:
+            msg['validation_errors'] = []
+            await sio.emit('agent_response', msg, to=sid)
+        # Emit the final task state
+        await _process_a2a_response((task, None), sid, task_id)
+    except Exception as e:
+        logger.error(f'Failed to load session for sid {sid}', exc_info=True)
+        await sio.emit(
+            'agent_response',
+            {'error': f'Failed to load session: {e}', 'id': task_id},
+            to=sid,
+        )
         await sio.emit(
             'agent_response',
             {'error': f'Failed to refresh task: {e}', 'id': task_id},

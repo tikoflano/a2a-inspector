@@ -677,11 +677,11 @@ document.addEventListener('DOMContentLoaded', () => {
     previousTaskId = id;
     (document.getElementById('session-details') as HTMLElement).textContent = id;
     (document.getElementById('session-task-id') as HTMLElement).textContent = id;
+    chatMessages.innerHTML = '';
     if (useTaskIdBtn) { useTaskIdBtn.classList.remove('hidden'); useTaskIdBtn.disabled = false; }
     if (refreshTaskBtn) { refreshTaskBtn.classList.remove('hidden'); refreshTaskBtn.disabled = false; }
     sendBtn.classList.add('hidden');
-    // Fetch the task to render history
-    socket.emit('refresh_task', {taskId: id});
+    socket.emit('load_session', {taskId: id});
   });
 
   modalCloseBtn.addEventListener('click', () =>
