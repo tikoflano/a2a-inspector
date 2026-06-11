@@ -413,6 +413,9 @@ async def handle_send_message(sid: str, json_data: dict[str, Any]) -> None:
         if last_task and last_task.status.state not in terminal_states:
             task_id = last_task.id
             poll_count = 0
+            last_status_msg_id = getattr(
+                getattr(last_task.status, 'message', None), 'message_id', None
+            )
             await sio.emit(
                 'polling_status',
                 {'status': 'started', 'taskId': task_id, 'id': message_id},
@@ -437,7 +440,13 @@ async def handle_send_message(sid: str, json_data: dict[str, Any]) -> None:
                 task = await a2a_client.get_task(
                     TaskQueryParams(id=task_id, history_length=10)
                 )
-                await _process_a2a_response((task, None), sid, message_id)
+                # Only emit to UI if status message changed
+                current_status_msg_id = getattr(
+                    getattr(task.status, 'message', None), 'message_id', None
+                )
+                if current_status_msg_id != last_status_msg_id:
+                    last_status_msg_id = current_status_msg_id
+                    await _process_a2a_response((task, None), sid, message_id)
                 if task.status.state in terminal_states:
                     await sio.emit(
                         'polling_status',
