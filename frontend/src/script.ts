@@ -741,6 +741,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (config.authType) {
       authTypeSelect.value = config.authType;
       authTypeSelect.dispatchEvent(new Event('change'));
+      // Auto-expand the headers section if auth is configured
+      if (config.authType !== 'none') {
+        const hContent = document.getElementById('http-headers-content');
+        const hToggle = document.getElementById('http-headers-toggle');
+        if (hContent && !hContent.classList.contains('expanded')) {
+          hContent.classList.add('expanded');
+          const icon = hToggle?.querySelector('.toggle-icon');
+          if (icon) icon.textContent = '▼';
+        }
+      }
     }
     if (config.apiKeyHeader) {
       const el = document.getElementById('api-key-header') as HTMLInputElement;
@@ -1168,7 +1178,6 @@ document.addEventListener('DOMContentLoaded', () => {
       refreshTaskBtn.disabled = false;
     }
     sendBtn.classList.add('hidden');
-    }
 
     // Store previous task_id if present
     if (event.kind === 'task') {
