@@ -668,6 +668,22 @@ document.addEventListener('DOMContentLoaded', () => {
     resetSession();
   });
 
+  const loadSessionBtn = document.getElementById('load-session-btn') as HTMLButtonElement;
+  loadSessionBtn.addEventListener('click', () => {
+    const sessionId = prompt('Enter session/task ID:');
+    if (!sessionId?.trim()) return;
+    const id = sessionId.trim();
+    contextId = id;
+    previousTaskId = id;
+    (document.getElementById('session-details') as HTMLInputElement).value = id;
+    (document.getElementById('session-task-id') as HTMLInputElement).value = id;
+    if (useTaskIdBtn) { useTaskIdBtn.classList.remove('hidden'); useTaskIdBtn.disabled = false; }
+    if (refreshTaskBtn) { refreshTaskBtn.classList.remove('hidden'); refreshTaskBtn.disabled = false; }
+    sendBtn.classList.add('hidden');
+    // Fetch the task to render history
+    socket.emit('refresh_task', {taskId: id});
+  });
+
   modalCloseBtn.addEventListener('click', () =>
     jsonModal.classList.add('hidden'),
   );
@@ -1001,6 +1017,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (newSessionBtn) {
         newSessionBtn.disabled = false;
+        loadSessionBtn.disabled = false;
       }
 
       const placeholder = chatMessages.querySelector('.placeholder-text');
