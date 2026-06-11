@@ -724,8 +724,6 @@ document.addEventListener('DOMContentLoaded', () => {
       apiKeyHeader: (document.getElementById('api-key-header') as HTMLInputElement)?.value || '',
       metadata: getKeyValuePairs(metadataList, '.metadata-item', '.metadata-key', '.metadata-value'),
       customHeaders: getKeyValuePairs(headersList, '.header-item', '.header-name', '.header-value'),
-      contextId: contextId || null,
-      taskId: previousTaskId || null,
     };
     localStorage.setItem('a2a-inspector-config', JSON.stringify(config));
     saveConfigBtn.textContent = '✅ Saved';
@@ -784,17 +782,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => { loadConfigBtn.textContent = '📂 Load'; }, 1500);
 
     // Restore session IDs
-    if (config.contextId) {
-      contextId = config.contextId;
-      (document.getElementById('session-details') as HTMLElement).textContent = config.contextId;
-    }
-    if (config.taskId) {
-      previousTaskId = config.taskId;
-      (document.getElementById('session-task-id') as HTMLElement).textContent = config.taskId;
-      if (useTaskIdBtn) { useTaskIdBtn.classList.remove('hidden'); useTaskIdBtn.disabled = false; }
-      if (refreshTaskBtn) { refreshTaskBtn.classList.remove('hidden'); refreshTaskBtn.disabled = false; }
-      sendBtn.classList.add('hidden');
-    }
   });
 
   connectBtn.addEventListener('click', async () => {
