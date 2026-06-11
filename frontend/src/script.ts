@@ -1369,11 +1369,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const pollingBar = document.getElementById('polling-bar') as HTMLElement;
 
+  let pollingStartTime = 0;
   socket.on('polling_status', (data: {status: string; taskId: string; attempt?: number; state?: string; id: string}) => {
     if (data.status === 'started' || data.status === 'polling') {
+      if (data.status === 'started') pollingStartTime = Date.now();
       pollingBar.style.display = 'block';
+      const elapsed = Math.round((Date.now() - pollingStartTime) / 1000);
       const attempt = data.attempt ? ` (attempt ${data.attempt})` : '';
-      pollingBar.innerHTML = `⏳ Polling task <code>${data.taskId}</code>${attempt} <button id="stop-polling-btn" style="margin-left:8px;cursor:pointer;background:#444;border:1px solid #666;color:#fff;border-radius:4px;padding:2px 8px;">⏹ Stop</button>`;
+      pollingBar.innerHTML = `⏳ Polling task <code>${data.taskId}</code>${attempt} — ${elapsed}s <button id="stop-polling-btn" style="margin-left:8px;cursor:pointer;background:#444;border:1px solid #666;color:#fff;border-radius:4px;padding:2px 8px;">⏹ Stop</button>`;
       document.getElementById('stop-polling-btn')?.addEventListener('click', () => {
         socket.emit('stop_polling', {taskId: data.taskId});
         pollingBar.innerHTML = `⏹ Polling stopped`;
