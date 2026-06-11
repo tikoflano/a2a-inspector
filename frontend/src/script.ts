@@ -981,12 +981,10 @@ document.addEventListener('DOMContentLoaded', () => {
     ) as HTMLButtonElement;
 
     if (!isConnected) {
-      if (sessionDetails) {
-        sessionDetails.value = '';
+      if (sessionDetails && !sessionDetails.value) {
         sessionDetails.placeholder = 'No active session';
       }
-      if (sessionTaskId) {
-        sessionTaskId.value = '';
+      if (sessionTaskId && !sessionTaskId.value) {
         sessionTaskId.placeholder = 'No active task';
       }
       if (newSessionBtn) {
@@ -994,12 +992,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } else {
       if (sessionDetails) {
-        sessionDetails.value = contextId ?? '';
-        sessionDetails.placeholder = contextId ? '' : 'No active session';
+        if (contextId) sessionDetails.value = contextId;
+        sessionDetails.placeholder = sessionDetails.value ? '' : 'No active session';
       }
       if (sessionTaskId) {
-        sessionTaskId.value = previousTaskId ?? '';
-        sessionTaskId.placeholder = previousTaskId ? '' : 'No active task';
+        if (previousTaskId) sessionTaskId.value = previousTaskId;
+        sessionTaskId.placeholder = sessionTaskId.value ? '' : 'No active task';
       }
       if (newSessionBtn) {
         newSessionBtn.disabled = false;
