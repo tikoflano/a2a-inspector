@@ -1171,6 +1171,17 @@ document.addEventListener('DOMContentLoaded', () => {
       pollingBar.style.display = 'none';
     }
 
+    // Update session status label
+    if (event.status?.state) {
+      const label = document.getElementById('session-status-label');
+      if (label) {
+        label.textContent = event.status.state;
+        const colors: Record<string, string> = {working: '#2563eb', completed: '#16a34a', 'input-required': '#d97706', failed: '#dc2626', canceled: '#6b7280'};
+        label.style.background = colors[event.status.state] || '#444';
+        label.style.color = '#fff';
+      }
+    }
+
     const displayMessageId = `display-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
     messageJsonStore[displayMessageId] = event;
 
