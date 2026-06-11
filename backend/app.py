@@ -81,6 +81,7 @@ templates = Jinja2Templates(directory='../frontend/public')
 # a more robust state management solution (e.g., Redis) would be required.
 clients: dict[str, tuple[httpx.AsyncClient, Client, AgentCard, str]] = {}
 polling_stop: set[str] = set()  # sids that requested polling stop
+polling_generation: dict[str, int] = {}  # tracks active polling generation per sid
 
 
 # ==============================================================================
@@ -261,6 +262,7 @@ async def handle_disconnect(sid: str) -> None:
     """Handle the 'disconnect' socket.io event."""
     logger.info(f'Client disconnected: {sid}')
     polling_stop.discard(sid)
+    polling_generation.pop(sid, None)
     if sid in clients:
         httpx_client, _, _, _ = clients.pop(sid)
         await httpx_client.aclose()
@@ -434,6 +436,9 @@ async def handle_send_message(sid: str, json_data: dict[str, Any]) -> None:
         if last_task and last_task.status.state not in terminal_states:
             task_id = last_task.id
             poll_count = 0
+            # Cancel any previous polling for this sid
+            polling_generation[sid] = polling_generation.get(sid, 0) + 1
+            my_generation = polling_generation[sid]
             last_status_msg_id = getattr(
                 getattr(last_task.status, 'message', None), 'message_id', None
             )
@@ -445,7 +450,7 @@ async def handle_send_message(sid: str, json_data: dict[str, Any]) -> None:
             )
             for _ in range(60):  # poll up to ~5 minutes
                 await asyncio.sleep(5)
-                if sid in polling_stop:
+                if sid in polling_stop or polling_generation.get(sid) != my_generation:
                     polling_stop.discard(sid)
                     break
                 poll_count += 1
