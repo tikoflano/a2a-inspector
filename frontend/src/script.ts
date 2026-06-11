@@ -1148,8 +1148,8 @@ document.addEventListener('DOMContentLoaded', () => {
           let html = `<div style="margin-bottom:10px; padding:12px; border-left:4px solid #d97706; background:#2d2006; border-radius:4px;">`;
           html += `<div style="font-weight:bold; color:#f59e0b; margin-bottom:6px;">${DOMPurify.sanitize(q.header || q.id)}: ${DOMPurify.sanitize(q.question)}</div>`;
           if (q.options) {
-            html += '<ul style="margin:4px 0 0 0; padding-left:16px;">' + q.options.map((o: any) =>
-              `<li style="margin-bottom:4px;"><strong>${DOMPurify.sanitize(o.label)}</strong>${o.description ? ' — ' + DOMPurify.sanitize(o.description) : ''}</li>`
+            html += '<ul style="margin:4px 0 0 0; padding-left:16px; color:#e0e0e0;">' + q.options.map((o: any) =>
+              `<li style="margin-bottom:4px;"><strong style="color:#fbbf24;">${DOMPurify.sanitize(o.label)}</strong>${o.description ? ' — ' + DOMPurify.sanitize(o.description) : ''}</li>`
             ).join('') + '</ul>';
           }
           if (q.required === false) {
