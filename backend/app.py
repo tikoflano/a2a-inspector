@@ -273,6 +273,27 @@ async def handle_stop_polling(sid: str, data: dict[str, Any]) -> None:
     polling_stop.add(sid)
 
 
+@sio.on('refresh_task')
+async def handle_refresh_task(sid: str, data: dict[str, Any]) -> None:
+    """Handle the 'refresh_task' socket.io event — manual tasks/get poll."""
+    task_id = data.get('taskId')
+    if not task_id or sid not in clients:
+        return
+    _, a2a_client, _, _ = clients[sid]
+    try:
+        task = await a2a_client.get_task(
+            TaskQueryParams(id=task_id, history_length=10)
+        )
+        await _process_a2a_response((task, None), sid, task_id)
+    except Exception as e:
+        logger.error(f'Failed to refresh task for sid {sid}', exc_info=True)
+        await sio.emit(
+            'agent_response',
+            {'error': f'Failed to refresh task: {e}', 'id': task_id},
+            to=sid,
+        )
+
+
 @sio.on('initialize_client')
 async def handle_initialize_client(sid: str, data: dict[str, Any]) -> None:
     """Handle the 'initialize_client' socket.io event."""

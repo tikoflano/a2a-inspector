@@ -783,6 +783,10 @@ document.addEventListener('DOMContentLoaded', () => {
       useTaskIdBtn.classList.add('hidden');
       useTaskIdBtn.disabled = true;
     }
+    if (refreshTaskBtn) {
+      refreshTaskBtn.classList.add('hidden');
+      refreshTaskBtn.disabled = true;
+    }
     if (chatMessages) {
       chatMessages.innerHTML =
         '<p class="placeholder-text">Messages will appear here.</p>';
@@ -1071,6 +1075,15 @@ document.addEventListener('DOMContentLoaded', () => {
     useTaskIdBtn.addEventListener('click', () => sendMessage(true));
   }
 
+  const refreshTaskBtn = document.getElementById('refresh-task-btn') as HTMLButtonElement;
+  if (refreshTaskBtn) {
+    refreshTaskBtn.addEventListener('click', () => {
+      if (previousTaskId) {
+        socket.emit('refresh_task', {taskId: previousTaskId});
+      }
+    });
+  }
+
   const renderMultimediaContent = (uri: string, mimeType: string): string => {
     const sanitizedUri = DOMPurify.sanitize(uri);
     const sanitizedMimeType = DOMPurify.sanitize(mimeType);
@@ -1132,6 +1145,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (useTaskIdBtn) {
       useTaskIdBtn.classList.remove('hidden');
       useTaskIdBtn.disabled = false;
+    }
+    if (refreshTaskBtn) {
+      refreshTaskBtn.classList.remove('hidden');
+      refreshTaskBtn.disabled = false;
     }
 
     // Store previous task_id if present
