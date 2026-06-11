@@ -460,6 +460,7 @@ async def handle_send_message(sid: str, json_data: dict[str, Any]) -> None:
             TaskState.canceled,
             TaskState.failed,
             TaskState.rejected,
+            TaskState.input_required,
         }
         if last_task and last_task.status.state not in terminal_states:
             task_id = last_task.id
