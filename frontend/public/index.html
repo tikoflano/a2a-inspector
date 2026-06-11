@@ -128,15 +128,19 @@
             </div>
             <div class="chat-input-wrapper">
                 <div id="attachments-preview" class="attachments-preview"></div>
-                <div class="chat-input-container">
-                    <input type="file" id="file-input" class="file-input-hidden" multiple accept="*/*">
-                    <textarea id="chat-input" placeholder="Type a message... (Shift+Enter for new line)" disabled rows="3" style="resize:vertical;"></textarea>
-                    <button id="attach-btn" class="attach-btn" disabled title="Attach files">
-                        <span class="attach-icon">+</span>
-                    </button>
-                    <button id="use-taskid-btn" class="use-taskid-btn hidden" disabled>Reply</button>
-                    <button id="refresh-task-btn" class="use-taskid-btn hidden" disabled>🔄 Refresh</button>
-                    <button id="send-btn" disabled>Send (new)</button>
+                <div class="chat-input-container" style="flex-direction:column; align-items:stretch;">
+                    <div style="display:flex; gap:8px; align-items:flex-start;">
+                        <input type="file" id="file-input" class="file-input-hidden" multiple accept="*/*">
+                        <textarea id="chat-input" placeholder="Type a message... (Shift+Enter for new line)" disabled rows="3" style="resize:vertical; flex:1;"></textarea>
+                        <button id="attach-btn" class="attach-btn" disabled title="Attach files">
+                            <span class="attach-icon">+</span>
+                        </button>
+                    </div>
+                    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:6px;">
+                        <button id="use-taskid-btn" class="use-taskid-btn hidden" disabled>Reply</button>
+                        <button id="refresh-task-btn" class="use-taskid-btn hidden" disabled>🔄 Refresh</button>
+                        <button id="send-btn" disabled>Send (new)</button>
+                    </div>
                 </div>
         </div>
     </div>
