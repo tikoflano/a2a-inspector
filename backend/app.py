@@ -82,6 +82,7 @@ templates = Jinja2Templates(directory='../frontend/public')
 clients: dict[str, tuple[httpx.AsyncClient, Client, AgentCard, str]] = {}
 polling_stop: set[str] = set()  # sids that requested polling stop
 polling_generation: dict[str, int] = {}  # tracks active polling generation per sid
+last_refresh_state: dict[str, tuple] = {}  # tracks (messageId, state) per sid for refresh dedup
 
 
 # ==============================================================================
@@ -263,6 +264,7 @@ async def handle_disconnect(sid: str) -> None:
     logger.info(f'Client disconnected: {sid}')
     polling_stop.discard(sid)
     polling_generation.pop(sid, None)
+    last_refresh_state.pop(sid, None)
     if sid in clients:
         httpx_client, _, _, _ = clients.pop(sid)
         await httpx_client.aclose()
@@ -286,6 +288,13 @@ async def handle_refresh_task(sid: str, data: dict[str, Any]) -> None:
         task = await a2a_client.get_task(
             TaskQueryParams(id=task_id, history_length=10)
         )
+        current = (
+            getattr(getattr(task.status, 'message', None), 'message_id', None),
+            task.status.state,
+        )
+        if last_refresh_state.get(sid) == current:
+            return  # no change
+        last_refresh_state[sid] = current
         await _process_a2a_response((task, None), sid, task_id)
     except Exception as e:
         logger.error(f'Failed to refresh task for sid {sid}', exc_info=True)
