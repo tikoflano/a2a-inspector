@@ -1143,6 +1143,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const dataObj = p.data as any;
       if (dataObj.mimeType && typeof dataObj.data === 'string') {
         return renderBase64Data(dataObj.data, dataObj.mimeType);
+      } else if (dataObj.type === 'gradial.pendingInput' && dataObj.questions) {
+        const questionsHtml = dataObj.questions.map((q: any) => {
+          let html = `<div style="margin-bottom:12px;"><strong>${q.header || q.id}</strong><br>${DOMPurify.sanitize(q.question)}`;
+          if (q.options) {
+            html += '<ul style="margin:4px 0;">' + q.options.map((o: any) =>
+              `<li><strong>${DOMPurify.sanitize(o.label)}</strong>${o.description ? ' — ' + DOMPurify.sanitize(o.description) : ''}</li>`
+            ).join('') + '</ul>';
+          }
+          html += '</div>';
+          return html;
+        }).join('');
+        return `<div class="pending-input">${questionsHtml}</div>`;
       } else {
         return `<pre><code>${DOMPurify.sanitize(JSON.stringify(p.data, null, 2))}</code></pre>`;
       }
