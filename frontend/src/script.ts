@@ -767,6 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
       (document.getElementById('session-task-id') as HTMLInputElement).value = config.taskId;
       if (useTaskIdBtn) { useTaskIdBtn.classList.remove('hidden'); useTaskIdBtn.disabled = false; }
       if (refreshTaskBtn) { refreshTaskBtn.classList.remove('hidden'); refreshTaskBtn.disabled = false; }
+      sendBtn.classList.add('hidden');
     }
   });
 
@@ -1008,15 +1009,16 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('session-details')?.addEventListener('change', (e) => {
     contextId = (e.target as HTMLInputElement).value.trim() || null;
   });
-  document.getElementById('session-task-id')?.addEventListener('change', (e) => {
+  document.getElementById('session-task-id')?.addEventListener('input', (e) => {
     previousTaskId = (e.target as HTMLInputElement).value.trim() || null;
-    if (previousTaskId && useTaskIdBtn) {
-      useTaskIdBtn.classList.remove('hidden');
-      useTaskIdBtn.disabled = false;
-    }
-    if (previousTaskId && refreshTaskBtn) {
-      refreshTaskBtn.classList.remove('hidden');
-      refreshTaskBtn.disabled = false;
+    if (previousTaskId) {
+      if (useTaskIdBtn) { useTaskIdBtn.classList.remove('hidden'); useTaskIdBtn.disabled = false; }
+      if (refreshTaskBtn) { refreshTaskBtn.classList.remove('hidden'); refreshTaskBtn.disabled = false; }
+      sendBtn.classList.add('hidden');
+    } else {
+      if (useTaskIdBtn) { useTaskIdBtn.classList.add('hidden'); useTaskIdBtn.disabled = true; }
+      if (refreshTaskBtn) { refreshTaskBtn.classList.add('hidden'); refreshTaskBtn.disabled = true; }
+      sendBtn.classList.remove('hidden');
     }
   });
 
@@ -1025,6 +1027,9 @@ document.addEventListener('DOMContentLoaded', () => {
     previousTaskId = null;
     chatMessages.innerHTML =
       '<p class="placeholder-text">Send a message to start a new session.</p>';
+    sendBtn.classList.remove('hidden');
+    if (useTaskIdBtn) { useTaskIdBtn.classList.add('hidden'); useTaskIdBtn.disabled = true; }
+    if (refreshTaskBtn) { refreshTaskBtn.classList.add('hidden'); refreshTaskBtn.disabled = true; }
     updateSessionUI();
   };
 
@@ -1181,6 +1186,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (refreshTaskBtn) {
       refreshTaskBtn.classList.remove('hidden');
       refreshTaskBtn.disabled = false;
+    }
+    sendBtn.classList.add('hidden');
     }
 
     // Store previous task_id if present
