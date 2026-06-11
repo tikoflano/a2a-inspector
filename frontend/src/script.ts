@@ -699,6 +699,8 @@ document.addEventListener('DOMContentLoaded', () => {
       apiKeyHeader: (document.getElementById('api-key-header') as HTMLInputElement)?.value || '',
       metadata: getKeyValuePairs(metadataList, '.metadata-item', '.metadata-key', '.metadata-value'),
       customHeaders: getKeyValuePairs(headersList, '.header-item', '.header-name', '.header-value'),
+      contextId,
+      taskId: previousTaskId,
     };
     localStorage.setItem('a2a-inspector-config', JSON.stringify(config));
     saveConfigBtn.textContent = '✅ Saved';
@@ -745,6 +747,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadConfigBtn.textContent = '✅ Loaded';
     setTimeout(() => { loadConfigBtn.textContent = '📂 Load'; }, 1500);
+
+    // Restore session IDs
+    if (config.contextId) {
+      contextId = config.contextId;
+      (document.getElementById('session-details') as HTMLInputElement).value = config.contextId;
+    }
+    if (config.taskId) {
+      previousTaskId = config.taskId;
+      (document.getElementById('session-task-id') as HTMLInputElement).value = config.taskId;
+      if (useTaskIdBtn) { useTaskIdBtn.classList.remove('hidden'); useTaskIdBtn.disabled = false; }
+      if (refreshTaskBtn) { refreshTaskBtn.classList.remove('hidden'); refreshTaskBtn.disabled = false; }
+    }
   });
 
   connectBtn.addEventListener('click', async () => {
@@ -941,40 +955,44 @@ document.addEventListener('DOMContentLoaded', () => {
   const updateSessionUI = () => {
     const sessionDetails = document.getElementById(
       'session-details',
-    ) as HTMLElement;
+    ) as HTMLInputElement;
     const sessionTaskId = document.getElementById(
       'session-task-id',
-    ) as HTMLElement;
+    ) as HTMLInputElement;
     const newSessionBtn = document.getElementById(
       'new-session-btn',
     ) as HTMLButtonElement;
 
     if (!isConnected) {
       if (sessionDetails) {
-        sessionDetails.textContent = 'No active session';
+        sessionDetails.value = '';
+        sessionDetails.placeholder = 'No active session';
       }
       if (sessionTaskId) {
-        sessionTaskId.textContent = 'No active task';
+        sessionTaskId.value = '';
+        sessionTaskId.placeholder = 'No active task';
       }
       if (newSessionBtn) {
         newSessionBtn.disabled = true;
       }
     } else if (contextId) {
       if (sessionDetails) {
-        sessionDetails.textContent = contextId;
+        sessionDetails.value = contextId;
       }
       if (sessionTaskId) {
-        sessionTaskId.textContent = previousTaskId ?? 'No active task';
+        sessionTaskId.value = previousTaskId ?? '';
       }
       if (newSessionBtn) {
         newSessionBtn.disabled = false;
       }
     } else {
       if (sessionDetails) {
-        sessionDetails.textContent = 'No active session';
+        sessionDetails.value = '';
+        sessionDetails.placeholder = 'No active session';
       }
       if (sessionTaskId) {
-        sessionTaskId.textContent = 'No active task';
+        sessionTaskId.value = '';
+        sessionTaskId.placeholder = 'No active task';
       }
       if (newSessionBtn) {
         newSessionBtn.disabled = true;
@@ -986,6 +1004,22 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   };
+
+  // Allow manual editing of contextId and taskId
+  document.getElementById('session-details')?.addEventListener('change', (e) => {
+    contextId = (e.target as HTMLInputElement).value.trim() || null;
+  });
+  document.getElementById('session-task-id')?.addEventListener('change', (e) => {
+    previousTaskId = (e.target as HTMLInputElement).value.trim() || null;
+    if (previousTaskId && useTaskIdBtn) {
+      useTaskIdBtn.classList.remove('hidden');
+      useTaskIdBtn.disabled = false;
+    }
+    if (previousTaskId && refreshTaskBtn) {
+      refreshTaskBtn.classList.remove('hidden');
+      refreshTaskBtn.disabled = false;
+    }
+  });
 
   const resetSession = () => {
     contextId = null;
