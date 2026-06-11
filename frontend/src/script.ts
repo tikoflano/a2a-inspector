@@ -895,9 +895,16 @@ document.addEventListener('DOMContentLoaded', () => {
           key => delete messageJsonStore[key],
         );
 
-        // Set connection state and reset session when connecting to a new agent
+        // Set connection state
         isConnected = true;
-        resetSession();
+
+        // Preserve any pre-loaded session IDs (from Load button)
+        const savedContextId = (document.getElementById('session-details') as HTMLInputElement)?.value.trim();
+        const savedTaskId = (document.getElementById('session-task-id') as HTMLInputElement)?.value.trim();
+        if (savedContextId) contextId = savedContextId;
+        if (savedTaskId) previousTaskId = savedTaskId;
+
+        updateSessionUI();
 
         // Store supported modalities
         supportedInputModes = data.inputModes || ['text/plain'];
