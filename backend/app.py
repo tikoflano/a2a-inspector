@@ -319,6 +319,11 @@ async def handle_load_session(sid: str, data: dict[str, Any]) -> None:
             await sio.emit('agent_response', msg, to=sid)
         # Emit the final task state
         await _process_a2a_response((task, None), sid, task_id)
+        # Set refresh dedup state so next refresh doesn't duplicate
+        last_refresh_state[sid] = (
+            getattr(getattr(task.status, 'message', None), 'message_id', None),
+            task.status.state,
+        )
     except Exception as e:
         logger.error(f'Failed to load session for sid {sid}', exc_info=True)
         await sio.emit(
