@@ -1066,9 +1066,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       appendMessage(
         'user',
-        sanitizedMessage,
+        sanitizedMessage.replace(/\n/g, '<br>'),
         messageId,
-        false,
+        true,
         [],
         attachmentsForDisplay,
       );
