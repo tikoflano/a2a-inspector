@@ -1145,11 +1145,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return renderBase64Data(dataObj.data, dataObj.mimeType);
       } else if (dataObj.type === 'gradial.pendingInput' && dataObj.questions) {
         const questionsHtml = dataObj.questions.map((q: any) => {
-          let html = `<div style="margin-bottom:12px;"><strong>${q.header || q.id}</strong><br>${DOMPurify.sanitize(q.question)}`;
+          let html = `<div style="margin-bottom:10px; padding:12px; border-left:4px solid #d97706; background:#2d2006; border-radius:4px;">`;
+          html += `<div style="font-weight:bold; color:#f59e0b; margin-bottom:6px;">${DOMPurify.sanitize(q.header || q.id)}: ${DOMPurify.sanitize(q.question)}</div>`;
           if (q.options) {
-            html += '<ul style="margin:4px 0;">' + q.options.map((o: any) =>
-              `<li><strong>${DOMPurify.sanitize(o.label)}</strong>${o.description ? ' — ' + DOMPurify.sanitize(o.description) : ''}</li>`
+            html += '<ul style="margin:4px 0 0 0; padding-left:16px;">' + q.options.map((o: any) =>
+              `<li style="margin-bottom:4px;"><strong>${DOMPurify.sanitize(o.label)}</strong>${o.description ? ' — ' + DOMPurify.sanitize(o.description) : ''}</li>`
             ).join('') + '</ul>';
+          }
+          if (q.required === false) {
+            html += `<div style="font-size:0.8em; color:#888; margin-top:4px;">Optional</div>`;
           }
           html += '</div>';
           return html;
