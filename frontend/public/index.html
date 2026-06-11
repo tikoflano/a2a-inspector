@@ -71,8 +71,8 @@
             </div>
         </div>
         <div id="chat-container">
-            <div class="chat-header-container">
-                <h2 class="chat-header">Chat</h2>
+            <div class="chat-header-container" style="display:flex; align-items:center;">
+                <h2 class="chat-header" style="flex:1; margin:0;">Chat</h2>
                 <button id="new-session-btn" class="new-session-btn" disabled>New Session</button>
                 <button id="load-session-btn" class="new-session-btn" disabled>Load Session</button>
             </div>
@@ -103,11 +103,11 @@
                         </div>
                         <div class="session-info-row">
                             <strong>Context ID:</strong>
-                            <input type="text" id="session-details" class="session-context-id" placeholder="No active session" style="font-family:monospace; font-size:0.85em; border:1px solid #444; background:#1a1a2e; color:#e0e0e0; padding:2px 6px; border-radius:3px; width:300px;">
+                            <code id="session-details" class="session-context-id">No active session</code>
                         </div>
                         <div class="session-info-row">
                             <strong>Task ID:</strong>
-                            <input type="text" id="session-task-id" class="session-context-id" placeholder="No active task" style="font-family:monospace; font-size:0.85em; border:1px solid #444; background:#1a1a2e; color:#e0e0e0; padding:2px 6px; border-radius:3px; width:300px;">
+                            <code id="session-task-id" class="session-context-id">No active task</code>
                         </div>
                     </div>
                 </div>

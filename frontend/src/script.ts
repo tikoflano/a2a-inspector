@@ -675,8 +675,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const id = sessionId.trim();
     contextId = id;
     previousTaskId = id;
-    (document.getElementById('session-details') as HTMLInputElement).value = id;
-    (document.getElementById('session-task-id') as HTMLInputElement).value = id;
+    (document.getElementById('session-details') as HTMLElement).textContent = id;
+    (document.getElementById('session-task-id') as HTMLElement).textContent = id;
     if (useTaskIdBtn) { useTaskIdBtn.classList.remove('hidden'); useTaskIdBtn.disabled = false; }
     if (refreshTaskBtn) { refreshTaskBtn.classList.remove('hidden'); refreshTaskBtn.disabled = false; }
     sendBtn.classList.add('hidden');
@@ -724,8 +724,8 @@ document.addEventListener('DOMContentLoaded', () => {
       apiKeyHeader: (document.getElementById('api-key-header') as HTMLInputElement)?.value || '',
       metadata: getKeyValuePairs(metadataList, '.metadata-item', '.metadata-key', '.metadata-value'),
       customHeaders: getKeyValuePairs(headersList, '.header-item', '.header-name', '.header-value'),
-      contextId: (document.getElementById('session-details') as HTMLInputElement)?.value.trim() || null,
-      taskId: (document.getElementById('session-task-id') as HTMLInputElement)?.value.trim() || null,
+      contextId: contextId || null,
+      taskId: previousTaskId || null,
     };
     localStorage.setItem('a2a-inspector-config', JSON.stringify(config));
     saveConfigBtn.textContent = '✅ Saved';
@@ -776,11 +776,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Restore session IDs
     if (config.contextId) {
       contextId = config.contextId;
-      (document.getElementById('session-details') as HTMLInputElement).value = config.contextId;
+      (document.getElementById('session-details') as HTMLElement).textContent = config.contextId;
     }
     if (config.taskId) {
       previousTaskId = config.taskId;
-      (document.getElementById('session-task-id') as HTMLInputElement).value = config.taskId;
+      (document.getElementById('session-task-id') as HTMLElement).textContent = config.taskId;
       if (useTaskIdBtn) { useTaskIdBtn.classList.remove('hidden'); useTaskIdBtn.disabled = false; }
       if (refreshTaskBtn) { refreshTaskBtn.classList.remove('hidden'); refreshTaskBtn.disabled = false; }
       sendBtn.classList.add('hidden');
@@ -914,12 +914,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Set connection state
         isConnected = true;
 
-        // Preserve any pre-loaded session IDs (from Load button)
-        const savedContextId = (document.getElementById('session-details') as HTMLInputElement)?.value.trim();
-        const savedTaskId = (document.getElementById('session-task-id') as HTMLInputElement)?.value.trim();
-        if (savedContextId) contextId = savedContextId;
-        if (savedTaskId) previousTaskId = savedTaskId;
-
         updateSessionUI();
 
         // Store supported modalities
@@ -986,39 +980,20 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const updateSessionUI = () => {
-    const sessionDetails = document.getElementById(
-      'session-details',
-    ) as HTMLInputElement;
-    const sessionTaskId = document.getElementById(
-      'session-task-id',
-    ) as HTMLInputElement;
-    const newSessionBtn = document.getElementById(
-      'new-session-btn',
-    ) as HTMLButtonElement;
+    const sessionDetails = document.getElementById('session-details') as HTMLElement;
+    const sessionTaskId = document.getElementById('session-task-id') as HTMLElement;
+    const newSessionBtn = document.getElementById('new-session-btn') as HTMLButtonElement;
 
     if (!isConnected) {
-      if (sessionDetails && !sessionDetails.value) {
-        sessionDetails.placeholder = 'No active session';
-      }
-      if (sessionTaskId && !sessionTaskId.value) {
-        sessionTaskId.placeholder = 'No active task';
-      }
-      if (newSessionBtn) {
-        newSessionBtn.disabled = true;
-      }
+      if (sessionDetails) sessionDetails.textContent = 'No active session';
+      if (sessionTaskId) sessionTaskId.textContent = 'No active task';
+      if (newSessionBtn) newSessionBtn.disabled = true;
+      loadSessionBtn.disabled = true;
     } else {
-      if (sessionDetails) {
-        if (contextId) sessionDetails.value = contextId;
-        sessionDetails.placeholder = sessionDetails.value ? '' : 'No active session';
-      }
-      if (sessionTaskId) {
-        if (previousTaskId) sessionTaskId.value = previousTaskId;
-        sessionTaskId.placeholder = sessionTaskId.value ? '' : 'No active task';
-      }
-      if (newSessionBtn) {
-        newSessionBtn.disabled = false;
-        loadSessionBtn.disabled = false;
-      }
+      if (sessionDetails) sessionDetails.textContent = contextId || 'No active session';
+      if (sessionTaskId) sessionTaskId.textContent = previousTaskId || 'No active task';
+      if (newSessionBtn) newSessionBtn.disabled = false;
+      loadSessionBtn.disabled = false;
 
       const placeholder = chatMessages.querySelector('.placeholder-text');
       if (placeholder) {
@@ -1026,23 +1001,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   };
-
-  // Allow manual editing of contextId and taskId
-  document.getElementById('session-details')?.addEventListener('change', (e) => {
-    contextId = (e.target as HTMLInputElement).value.trim() || null;
-  });
-  document.getElementById('session-task-id')?.addEventListener('input', (e) => {
-    previousTaskId = (e.target as HTMLInputElement).value.trim() || null;
-    if (previousTaskId) {
-      if (useTaskIdBtn) { useTaskIdBtn.classList.remove('hidden'); useTaskIdBtn.disabled = false; }
-      if (refreshTaskBtn) { refreshTaskBtn.classList.remove('hidden'); refreshTaskBtn.disabled = false; }
-      sendBtn.classList.add('hidden');
-    } else {
-      if (useTaskIdBtn) { useTaskIdBtn.classList.add('hidden'); useTaskIdBtn.disabled = true; }
-      if (refreshTaskBtn) { refreshTaskBtn.classList.add('hidden'); refreshTaskBtn.disabled = true; }
-      sendBtn.classList.remove('hidden');
-    }
-  });
 
   const resetSession = () => {
     contextId = null;
