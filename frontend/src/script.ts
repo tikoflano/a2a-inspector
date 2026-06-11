@@ -145,6 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const useTaskIdBtn = document.getElementById(
     'use-taskid-btn',
   ) as HTMLButtonElement;
+  const refreshTaskBtn = document.getElementById('refresh-task-btn') as HTMLButtonElement;
   const debugConsole = document.getElementById('debug-console') as HTMLElement;
   const debugHandle = document.getElementById('debug-handle') as HTMLElement;
   const debugContent = document.getElementById('debug-content') as HTMLElement;
@@ -983,27 +984,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (newSessionBtn) {
         newSessionBtn.disabled = true;
       }
-    } else if (contextId) {
+    } else {
       if (sessionDetails) {
-        sessionDetails.value = contextId;
+        sessionDetails.value = contextId ?? '';
+        sessionDetails.placeholder = contextId ? '' : 'No active session';
       }
       if (sessionTaskId) {
         sessionTaskId.value = previousTaskId ?? '';
+        sessionTaskId.placeholder = previousTaskId ? '' : 'No active task';
       }
       if (newSessionBtn) {
         newSessionBtn.disabled = false;
-      }
-    } else {
-      if (sessionDetails) {
-        sessionDetails.value = '';
-        sessionDetails.placeholder = 'No active session';
-      }
-      if (sessionTaskId) {
-        sessionTaskId.value = '';
-        sessionTaskId.placeholder = 'No active task';
-      }
-      if (newSessionBtn) {
-        newSessionBtn.disabled = true;
       }
 
       const placeholder = chatMessages.querySelector('.placeholder-text');
@@ -1117,7 +1108,6 @@ document.addEventListener('DOMContentLoaded', () => {
     useTaskIdBtn.addEventListener('click', () => sendMessage(true));
   }
 
-  const refreshTaskBtn = document.getElementById('refresh-task-btn') as HTMLButtonElement;
   if (refreshTaskBtn) {
     refreshTaskBtn.addEventListener('click', () => {
       if (previousTaskId) {

@@ -437,6 +437,7 @@ async def handle_send_message(sid: str, json_data: dict[str, Any]) -> None:
             last_status_msg_id = getattr(
                 getattr(last_task.status, 'message', None), 'message_id', None
             )
+            last_state = last_task.status.state
             await sio.emit(
                 'polling_status',
                 {'status': 'started', 'taskId': task_id, 'id': message_id},
@@ -465,8 +466,10 @@ async def handle_send_message(sid: str, json_data: dict[str, Any]) -> None:
                 current_status_msg_id = getattr(
                     getattr(task.status, 'message', None), 'message_id', None
                 )
-                if current_status_msg_id != last_status_msg_id:
+                current_state = task.status.state
+                if current_status_msg_id != last_status_msg_id or current_state != last_state:
                     last_status_msg_id = current_status_msg_id
+                    last_state = current_state
                     await _process_a2a_response((task, None), sid, message_id)
                 if task.status.state in terminal_states:
                     await sio.emit(
