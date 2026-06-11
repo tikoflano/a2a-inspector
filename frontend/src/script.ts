@@ -816,8 +816,8 @@ document.addEventListener('DOMContentLoaded', () => {
         '<p class="placeholder-text">Messages will appear here.</p>';
     }
 
-    contextId = null;
-    previousTaskId = null;
+    // Preserve session IDs (they may have been loaded)
+    // contextId and previousTaskId are NOT cleared here
 
     // Get custom headers
     const customHeaders = getCustomHeaders();
