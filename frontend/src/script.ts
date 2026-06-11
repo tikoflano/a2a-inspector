@@ -708,8 +708,8 @@ document.addEventListener('DOMContentLoaded', () => {
       apiKeyHeader: (document.getElementById('api-key-header') as HTMLInputElement)?.value || '',
       metadata: getKeyValuePairs(metadataList, '.metadata-item', '.metadata-key', '.metadata-value'),
       customHeaders: getKeyValuePairs(headersList, '.header-item', '.header-name', '.header-value'),
-      contextId,
-      taskId: previousTaskId,
+      contextId: (document.getElementById('session-details') as HTMLInputElement)?.value.trim() || null,
+      taskId: (document.getElementById('session-task-id') as HTMLInputElement)?.value.trim() || null,
     };
     localStorage.setItem('a2a-inspector-config', JSON.stringify(config));
     saveConfigBtn.textContent = '✅ Saved';
