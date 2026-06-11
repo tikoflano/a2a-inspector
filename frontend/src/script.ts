@@ -670,7 +670,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const loadSessionBtn = document.getElementById('load-session-btn') as HTMLButtonElement;
   loadSessionBtn.addEventListener('click', () => {
-    const sessionId = prompt('Enter session/task ID:');
+    const stored = localStorage.getItem('a2a-inspector-config');
+    const savedSessionId = stored ? (JSON.parse(stored).sessionId || '') : '';
+    const sessionId = prompt('Enter session/task ID:', savedSessionId);
     if (!sessionId?.trim()) return;
     const id = sessionId.trim();
     contextId = id;
@@ -724,6 +726,7 @@ document.addEventListener('DOMContentLoaded', () => {
       apiKeyHeader: (document.getElementById('api-key-header') as HTMLInputElement)?.value || '',
       metadata: getKeyValuePairs(metadataList, '.metadata-item', '.metadata-key', '.metadata-value'),
       customHeaders: getKeyValuePairs(headersList, '.header-item', '.header-name', '.header-value'),
+      sessionId: previousTaskId || null,
     };
     localStorage.setItem('a2a-inspector-config', JSON.stringify(config));
     saveConfigBtn.textContent = '✅ Saved';
