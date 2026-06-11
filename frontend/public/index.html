@@ -130,12 +130,12 @@
                 <div id="attachments-preview" class="attachments-preview"></div>
                 <div class="chat-input-container">
                     <input type="file" id="file-input" class="file-input-hidden" multiple accept="*/*">
-                    <input type="text" id="chat-input" placeholder="Type a message..." disabled>
+                    <textarea id="chat-input" placeholder="Type a message... (Shift+Enter for new line)" disabled rows="3" style="resize:vertical;"></textarea>
                     <button id="attach-btn" class="attach-btn" disabled title="Attach files">
                         <span class="attach-icon">+</span>
                     </button>
-                    <button id="send-btn" disabled>Send</button>
-                    <button id="use-taskid-btn" class="use-taskid-btn hidden" disabled>Send with previous <code>taskId</code></button>
+                    <button id="use-taskid-btn" class="use-taskid-btn hidden" disabled>Reply</button>
+                    <button id="send-btn" disabled>Send (new)</button>
                 </div>
         </div>
     </div>

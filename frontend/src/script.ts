@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const validationErrorsContainer = document.getElementById(
     'validation-errors',
   ) as HTMLElement;
-  const chatInput = document.getElementById('chat-input') as HTMLInputElement;
+  const chatInput = document.getElementById('chat-input') as HTMLTextAreaElement;
   const sendBtn = document.getElementById('send-btn') as HTMLButtonElement;
   const chatMessages = document.getElementById('chat-messages') as HTMLElement;
   const useTaskIdBtn = document.getElementById(
@@ -1057,8 +1057,15 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   sendBtn.addEventListener('click', () => sendMessage());
-  chatInput.addEventListener('keypress', (e: KeyboardEvent) => {
-    if (e.key === 'Enter') sendMessage();
+  chatInput.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (useTaskIdBtn && !useTaskIdBtn.classList.contains('hidden') && !useTaskIdBtn.disabled) {
+        sendMessage(true);
+      } else {
+        sendMessage();
+      }
+    }
   });
   if (useTaskIdBtn) {
     useTaskIdBtn.addEventListener('click', () => sendMessage(true));

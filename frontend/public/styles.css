@@ -970,6 +970,9 @@ body.dark-mode .loading-spinner {
     background-color: #f7f7f7;
     display: flex;
     flex-direction: column;
+    resize: vertical;
+    min-height: 150px;
+    max-height: 80vh;
 }
 
 .chat-info {
