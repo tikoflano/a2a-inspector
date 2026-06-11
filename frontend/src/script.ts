@@ -748,6 +748,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const icon = hToggle?.querySelector('.toggle-icon');
           if (icon) icon.textContent = '▼';
         }
+        setTimeout(() => {
+          const valueInput = document.getElementById('api-key-value') as HTMLInputElement;
+          if (valueInput) valueInput.focus();
+        }, 100);
       }
     }
     if (config.apiKeyHeader) {
