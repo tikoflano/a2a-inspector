@@ -1171,7 +1171,7 @@ document.addEventListener('DOMContentLoaded', () => {
     hideLoadingIndicator();
 
     // Hide polling bar when a terminal response arrives
-    if (event.status?.state && ['completed', 'canceled', 'failed', 'rejected'].includes(event.status.state)) {
+    if (event.status?.state && ['completed', 'canceled', 'failed', 'rejected', 'input-required'].includes(event.status.state)) {
       pollingBar.style.display = 'none';
     }
 
